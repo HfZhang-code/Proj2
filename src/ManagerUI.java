@@ -11,6 +11,7 @@ public class ManagerUI {
     public JButton btnManageProduct = new JButton("Manage Products");
     public JButton btnManagePurchase = new JButton("Manage Purchase");
 
+
     public ManagerUI() {
         this.view = new JFrame();
 
@@ -46,13 +47,7 @@ public class ManagerUI {
                 ui.run();
             }
         });
-        btnManageCustomer.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                ManageCustomerUI ui = new ManageCustomerUI();
-                ui.run();
-            }
-        });
+
 
         btnManagePurchase.addActionListener(new ActionListener() {
             @Override

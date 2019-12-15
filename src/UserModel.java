@@ -1,8 +1,8 @@
 public class UserModel {
-    public static final int CUSTOMER = 1;
-    public static final int CASHIER = 2;
-    public static final int MANAGER = 0;
-    public static final int ADMIN = 3;
+    public static final int CUSTOMER = 0;
+    public static final int CASHIER = 1;
+    public static final int MANAGER = 3;
+    public static final int ADMIN = 2;
 
 
     public String mUsername, mPassword, mFullname;

@@ -4,14 +4,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Scanner;
 
-public class ManageProductUI {
+public class AddProductUI {
 
     public JFrame view;
 
-    public JButton btnLoad = new JButton("Load Product");
-    public JButton btnSave = new JButton("Save Product");
-    public JButton btnAdd= new JButton("Add Product");
+    public JButton btnAdd = new JButton("Add");
+    public JButton btnCancel = new JButton("Cancel");
 
     public JTextField txtProductID = new JTextField(20);
     public JTextField txtName = new JTextField(20);
@@ -19,20 +21,13 @@ public class ManageProductUI {
     public JTextField txtQuantity = new JTextField(20);
 
 
-    public ManageProductUI() {
+    public AddProductUI()   {
         this.view = new JFrame();
-
-        view.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-        view.setTitle("Update Product Information");
+        view.setTitle("Add Product");
         view.setSize(600, 400);
         view.getContentPane().setLayout(new BoxLayout(view.getContentPane(), BoxLayout.PAGE_AXIS));
 
-        JPanel panelButtons = new JPanel(new FlowLayout());
-        panelButtons.add(btnLoad);
-        panelButtons.add(btnSave);
-        panelButtons.add(btnAdd);
-        view.getContentPane().add(panelButtons);
+        String[] labels = {"ProductID ", "Name ", "Price ", "Quantity "};
 
         JPanel line1 = new JPanel(new FlowLayout());
         line1.add(new JLabel("ProductID "));
@@ -54,14 +49,16 @@ public class ManageProductUI {
         line4.add(txtQuantity);
         view.getContentPane().add(line4);
 
+        JPanel panelButtons = new JPanel(new FlowLayout());
+        panelButtons.add(btnAdd);
+        panelButtons.add(btnCancel);
+        view.getContentPane().add(panelButtons);
 
-        btnLoad.addActionListener(new LoadButtonListerner());
-        btnSave.addActionListener(new SaveButtonListener());
-        btnAdd.addActionListener(new ActionListener() {
+        btnAdd.addActionListener(new AddButtonListerner());
+        btnCancel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                AddProductUI ap = new AddProductUI();
-                ap.run();
+                view.dispose();
             }
         });
 
@@ -71,43 +68,12 @@ public class ManageProductUI {
         view.setVisible(true);
     }
 
-    class LoadButtonListerner implements ActionListener {
+    class AddButtonListerner implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
             ProductModel product = new ProductModel();
-            String id = txtProductID.getText();
 
-            if (id.length() == 0) {
-                JOptionPane.showMessageDialog(null, "ProductID cannot be null!");
-                return;
-            }
-
-            try {
-                product.mProductID = Integer.parseInt(id);
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(null, "ProductID is invalid!");
-                return;
-            }
-
-            // call data access!
-
-            product = StoreManager.getInstance().getDataAdapter().loadProduct(product.mProductID);
-
-            if (product == null) {
-                JOptionPane.showMessageDialog(null, "Product NOT exists!");
-            } else {
-                txtName.setText(product.mName);
-                txtPrice.setText(Double.toString(product.mPrice));
-                txtQuantity.setText(Double.toString(product.mQuantity));
-            }
-        }
-    }
-
-    class SaveButtonListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent actionEvent) {
-            ProductModel product = new ProductModel();
             String id = txtProductID.getText();
 
             if (id.length() == 0) {
@@ -138,21 +104,42 @@ public class ManageProductUI {
                 return;
             }
 
-            String quant = txtQuantity.getText();
+            String quantity = txtQuantity.getText();
             try {
-                product.mQuantity = Double.parseDouble(quant);
+                product.mQuantity = Integer.parseInt(quantity);
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Quantity is invalid!");
                 return;
             }
 
+            try {
+                Gson gson = new Gson();
+                Socket link = new Socket("localhost", 8080);
+                Scanner input = new Scanner(link.getInputStream());
+                PrintWriter output = new PrintWriter(link.getOutputStream(), true);
 
-            int  res = StoreManager.getInstance().getDataAdapter().saveProduct(product);
+                MessageModel msg = new MessageModel();
+                msg.code = MessageModel.PUT_PRODUCT;
+                msg.data = gson.toJson(product);
+                output.println(gson.toJson(msg)); // send to Server
 
-            if (res == IDataAdapter.PRODUCT_SAVE_FAILED)
-                JOptionPane.showMessageDialog(null, "Product is NOT saved successfully!");
-            else
-                JOptionPane.showMessageDialog(null, "Product is SAVED successfully!");
+                msg = gson.fromJson(input.nextLine(), MessageModel.class); // receive from Server
+
+                if (msg.code == MessageModel.OPERATION_FAILED) {
+                    JOptionPane.showMessageDialog(null, "Product is NOT saved successfully!");
+                }
+                else {
+                    JOptionPane.showMessageDialog(null, "Product is SAVED successfully!");
+                    view.dispose();
+                }
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
         }
     }
+
 }

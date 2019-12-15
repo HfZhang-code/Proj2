@@ -11,7 +11,7 @@ public class AdminUI {
 
     public JButton btnAddUser = new JButton("Add a user");
     public JButton btnDelUser = new JButton("Delete a user");
-
+    public JButton btnUpdateUserType= new JButton("Update Uer Type");
     public AdminUI(UserModel user) {
 
         this.user = user;
@@ -37,11 +37,24 @@ public class AdminUI {
         JPanel panelButtons = new JPanel(new FlowLayout());
         panelButtons.add(btnAddUser);
         panelButtons.add(btnDelUser);
-
+        panelButtons.add(btnUpdateUserType);
 
         view.getContentPane().add(panelButtons);
 
-
+        btnAddUser.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                AddPurchaseUI ap = new AddPurchaseUI();
+                ap.run();
+            }
+        });
+        btnUpdateUserType.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                ManageUserTypeUI ap = new ManageUserTypeUI();
+                ap.run();
+            }
+        });
 
 
 
